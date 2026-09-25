@@ -1,0 +1,1649 @@
+{
+  "name": "Entrega Final - AI Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "text": "={{ JSON.stringify($json) }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "suite ",
+              "description": "={{ $json.SUITE }}",
+              "required": true
+            },
+            {
+              "name": "nombre ",
+              "description": "={{ $json.NOMBRE }}",
+              "required": true
+            },
+            {
+              "name": "celular ",
+              "type": "number",
+              "description": "={{ $json['TELÉFONO'] }}",
+              "required": true
+            },
+            {
+              "name": "email ",
+              "description": "={{ $json.EMAIL }}",
+              "required": true
+            },
+            {
+              "name": "tipo de cliente ",
+              "description": "={{ $json['TIPO DE CLIENTE'] }}",
+              "required": true
+            },
+            {
+              "name": "factura ",
+              "description": "={{ $json.FACTURA }}",
+              "required": true
+            },
+            {
+              "name": "fecha_factura",
+              "type": "date",
+              "description": "={{ $json.FECHA }}",
+              "required": true
+            },
+            {
+              "name": "valor_transporte",
+              "type": "number",
+              "description": "={{ $json.TRANSPORTE }}",
+              "required": true
+            },
+            {
+              "name": "valor_impuestos ",
+              "type": "number",
+              "description": "={{ $json.IMPUESTOS }}",
+              "required": true
+            },
+            {
+              "name": "=valor_descuento",
+              "type": "number",
+              "description": "={{ $json.DESCUENTO }}"
+            },
+            {
+              "name": "valor_total ",
+              "type": "number",
+              "description": "={{ $json.VALOR }}"
+            },
+            {
+              "name": "Alianza cliente ",
+              "description": "={{ $json.ALIANZA }}",
+              "required": true
+            },
+            {
+              "name": "Plazo de pago ",
+              "type": "number",
+              "description": "={{ $json.PLAZOS }}"
+            }
+          ]
+        },
+        "options": {
+          "systemPromptTemplate": "No inventes valores. Si un registro está incompleto porque fue cortado entre fragmentos, no lo incluyas.\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        -6512,
+        -2800
+      ],
+      "id": "3024350e-cf7a-430e-87c7-a031f70edaed",
+      "name": "JSON deseado",
+      "onError": "continueErrorOutput",
+      "notes": "Cualquier campo que venga vacío lo dejas así. No inventes valores, no asumas información. "
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "maxResults": 5,
+        "filters": {
+          "q": "subject:\"Cartera\" has:attachment "
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -6912,
+        -2800
+      ],
+      "id": "dda1fe7c-0f02-49cc-84ab-c4295ebe1eeb",
+      "name": "Llega el archivo XLSX",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "IBukezMIkvcQxrEG",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "={{ Object.keys($binary)[0] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -6720,
+        -2800
+      ],
+      "id": "b167c8a0-f9e1-401e-8f34-28ff0316f07e",
+      "name": "Extrae el contenido"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output['Alianza cliente '] }}",
+                    "rightValue": "BoxCargo",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "238ac501-5d79-4ded-b974-a980c37fc5d8"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Alianza boxcargo "
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d352f26b-8531-4488-9ea9-3a13ffe4b27c",
+                    "leftValue": "={{ $json.output['Alianza cliente '] }}",
+                    "rightValue": "CourierBox",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Alianza Courierbox "
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -6224,
+        -2800
+      ],
+      "id": "73735434-3d8e-4394-b8b1-a3696108113f",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-haiku-4-5-20251001",
+          "mode": "list",
+          "cachedResultName": "Claude Haiku 4.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.6,
+      "position": [
+        -6512,
+        -2576
+      ],
+      "id": "1cf2696f-9255-448a-88b3-b40293251de0",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "i0IwqcaCVWnhT3Bu",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "appYNE7rMa4QN1qKL",
+          "mode": "list",
+          "cachedResultName": "Boxcargo",
+          "cachedResultUrl": "https://airtable.com/appYNE7rMa4QN1qKL"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblKw2Lqy7mlQTT3D",
+          "mode": "list",
+          "cachedResultName": "Cartera",
+          "cachedResultUrl": "https://airtable.com/appYNE7rMa4QN1qKL/tblKw2Lqy7mlQTT3D"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "factura": "={{ $json.output['factura '] }}",
+            "suite": "={{ $json.output['suite '] }}",
+            "alianza": "={{ $json.output['Alianza cliente '] }}",
+            "Tipo de cliente": "={{ $json.output['tipo de cliente '] }}",
+            "nombre": "={{ $json.output['nombre '] }}",
+            "Valor Total": "={{ $json.output['valor_total '] }}",
+            "Plazo de pago": "={{ $json.output['Plazo de pago '] }}",
+            "fecha emision de factura": "={{ new Date($json.output.fecha_factura).toISOString() }}",
+            "Telefono": "={{ '+57' + $json.output['celular '].toString().replace(/\\D/g, '') }}",
+            "Automation": "Pendiente"
+          },
+          "matchingColumns": [
+            "factura"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "factura",
+              "displayName": "factura",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "suite",
+              "displayName": "suite",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "alianza",
+              "displayName": "alianza",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Tipo de cliente",
+              "displayName": "Tipo de cliente",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Valor Total",
+              "displayName": "Valor Total",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Estado de Factura",
+              "displayName": "Estado de Factura",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Automation",
+              "displayName": "Automation",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Pagada",
+                  "value": "Pagada"
+                },
+                {
+                  "name": "Pendiente",
+                  "value": "Pendiente"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Telefono",
+              "displayName": "Telefono",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Plazo de pago",
+              "displayName": "Plazo de pago",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "fecha emision de factura",
+              "displayName": "fecha emision de factura",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "fecha vencimiento",
+              "displayName": "fecha vencimiento",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "fecha creación registro",
+              "displayName": "fecha creación registro",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Días Transcurridos desde Emisión",
+              "displayName": "Días Transcurridos desde Emisión",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Días de Mora",
+              "displayName": "Días de Mora",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Categorización de Mora",
+              "displayName": "Categorización de Mora",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Ultima notificación ",
+              "displayName": "Ultima notificación ",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Ninguna ",
+                  "value": "Ninguna "
+                },
+                {
+                  "name": "Aviso previo ",
+                  "value": "Aviso previo "
+                },
+                {
+                  "name": "1 a 30 dias ",
+                  "value": "1 a 30 dias "
+                },
+                {
+                  "name": "21 a 60 dias ",
+                  "value": "21 a 60 dias "
+                },
+                {
+                  "name": "61 a 90 dias ",
+                  "value": "61 a 90 dias "
+                },
+                {
+                  "name": "Mayor o igual a 91 dias",
+                  "value": "Mayor o igual a 91 dias"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -5824,
+        -3472
+      ],
+      "id": "749542fd-f105-4912-915f-63e1c10c8189",
+      "name": "Camino A: actualizar o crear usuarios en BD",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "0OCsLT9lxrQ8Sb2G",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appYNE7rMa4QN1qKL",
+          "mode": "list",
+          "cachedResultName": "Boxcargo",
+          "cachedResultUrl": "https://airtable.com/appYNE7rMa4QN1qKL"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblKw2Lqy7mlQTT3D",
+          "mode": "list",
+          "cachedResultName": "Cartera",
+          "cachedResultUrl": "https://airtable.com/appYNE7rMa4QN1qKL/tblKw2Lqy7mlQTT3D"
+        },
+        "filterByFormula": "NOT({Automation} = \"Pagada\")",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -5824,
+        -3072
+      ],
+      "id": "ba059bc9-1c3a-445f-b568-c3f79b8120aa",
+      "name": "Camino B: identificación de pagos",
+      "executeOnce": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "0OCsLT9lxrQ8Sb2G",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function getCampo(obj, nombreBuscado) {\n  if (!obj) return undefined;\n  const key = Object.keys(obj).find(k => k.trim().toLowerCase() === nombreBuscado.toLowerCase());\n  return key ? obj[key] : undefined;\n}\n\nconst facturasActuales = new Set(\n  $('JSON deseado').all()\n    .filter(item => (getCampo(item.json.output, 'Alianza cliente') ?? '').toString().trim() === 'BoxCargo')\n    .map(item => (getCampo(item.json.output, 'factura') ?? '').toString().trim())\n);\n\nconsole.log('Total facturas actuales encontradas:', facturasActuales.size);\n\nconst pendientesAirtable = $input.all();\n\nconst pagadas = pendientesAirtable.filter(item => {\n  const factura = (item.json.fields?.factura ?? item.json.fields?.Factura ?? '').toString().trim();\n  return factura && !facturasActuales.has(factura);\n});\n\nreturn pagadas.map(item => ({\n  json: {\n    id: item.json.id,\n    factura: item.json.fields?.factura ?? item.json.fields?.Factura\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5616,
+        -3072
+      ],
+      "id": "8ffa9a01-6807-45aa-95cb-c433a7d1e0c0",
+      "name": "Reglas del JSON"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appYNE7rMa4QN1qKL",
+          "mode": "list",
+          "cachedResultName": "Boxcargo",
+          "cachedResultUrl": "https://airtable.com/appYNE7rMa4QN1qKL"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblKw2Lqy7mlQTT3D",
+          "mode": "list",
+          "cachedResultName": "Cartera",
+          "cachedResultUrl": "https://airtable.com/appYNE7rMa4QN1qKL/tblKw2Lqy7mlQTT3D"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "factura": "={{ $json.factura }}",
+            "Automation": "Pagada"
+          },
+          "matchingColumns": [
+            "factura"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "factura",
+              "displayName": "factura",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "suite",
+              "displayName": "suite",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "alianza",
+              "displayName": "alianza",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Tipo de cliente",
+              "displayName": "Tipo de cliente",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Valor Total",
+              "displayName": "Valor Total",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Estado de Factura",
+              "displayName": "Estado de Factura",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Automation",
+              "displayName": "Automation",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Pagada",
+                  "value": "Pagada"
+                },
+                {
+                  "name": "Pendiente",
+                  "value": "Pendiente"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Telefono",
+              "displayName": "Telefono",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Plazo de pago",
+              "displayName": "Plazo de pago",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "fecha emision de factura",
+              "displayName": "fecha emision de factura",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "fecha vencimiento",
+              "displayName": "fecha vencimiento",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "fecha creación registro",
+              "displayName": "fecha creación registro",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Días Transcurridos desde Emisión",
+              "displayName": "Días Transcurridos desde Emisión",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Días de Mora",
+              "displayName": "Días de Mora",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Categorización de Mora",
+              "displayName": "Categorización de Mora",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Ultima notificación ",
+              "displayName": "Ultima notificación ",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Ninguna ",
+                  "value": "Ninguna "
+                },
+                {
+                  "name": "Aviso previo ",
+                  "value": "Aviso previo "
+                },
+                {
+                  "name": "1 a 30 dias ",
+                  "value": "1 a 30 dias "
+                },
+                {
+                  "name": "21 a 60 dias ",
+                  "value": "21 a 60 dias "
+                },
+                {
+                  "name": "61 a 90 dias ",
+                  "value": "61 a 90 dias "
+                },
+                {
+                  "name": "Mayor o igual a 91 dias",
+                  "value": "Mayor o igual a 91 dias"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -5424,
+        -3072
+      ],
+      "id": "5f9f866a-834c-457c-a45d-f74e85ca1abd",
+      "name": "Actualizar Automation a pagada",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "0OCsLT9lxrQ8Sb2G",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b00f9169-2d70-44bd-b225-c20652045bff",
+              "leftValue": "={{ $json['informacion completa'] }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -5424,
+        -3472
+      ],
+      "id": "7c848f05-d399-4d5b-b9be-a141dffe465e",
+      "name": "Información completa?"
+    },
+    {
+      "parameters": {
+        "jsCode": "function getCampo(obj, nombreBuscado) {\n  if (!obj) return undefined;\n  const key = Object.keys(obj).find(k => k.trim().toLowerCase() === nombreBuscado.toLowerCase());\n  return key ? obj[key] : undefined;\n}\nfunction tieneValor(v) {\n  return v !== undefined && v !== null && v !== '';\n}\nfunction esNumeroValido(v) {\n  const n = Number(v);\n  return tieneValor(v) && !isNaN(n) && n > 0;\n}\n\nconst camposNoVacios = [\n  { key: 'factura', label: 'Factura' },\n  { key: 'suite', label: 'Suite' },\n  { key: 'alianza', label: 'Alianza' },\n  { key: 'Tipo de cliente', label: 'Tipo de cliente' },\n  { key: 'nombre', label: 'Nombre' },\n  { key: 'fecha emision de factura', label: 'Fecha de emisión' },\n  { key: 'Telefono', label: 'Teléfono' }\n];\n\nreturn $input.all().map(item => {\n  const data = item.json.fields || {};\n\n  console.log('Campos disponibles:', Object.keys(data));\n\n  const faltantes = [];\n\n  camposNoVacios.forEach(c => {\n    if (!tieneValor(getCampo(data, c.key))) faltantes.push(c.label);\n  });\n  if (!esNumeroValido(getCampo(data, 'Valor Total'))) faltantes.push('Valor Total (debe ser mayor a 0)');\n  if (!esNumeroValido(getCampo(data, 'Plazo de pago'))) faltantes.push('Plazo de pago (debe ser mayor a 0)');\n\n  const nombre = getCampo(data, 'nombre');\n  const suite = getCampo(data, 'suite');\n  const factura = getCampo(data, 'factura');\n\n  const partesId = [];\n  if (tieneValor(nombre)) partesId.push(nombre);\n  if (tieneValor(suite)) partesId.push(`Suite ${suite}`);\n  if (tieneValor(factura)) partesId.push(`Factura ${factura}`);\n\n  item.json['informacion completa'] = faltantes.length === 0;\n  item.json.__identificacion = partesId.length ? partesId.join(' — ') : 'Registro sin datos identificadores';\n  item.json.__camposFaltantes = faltantes.join(', ');\n\n  return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5632,
+        -3472
+      ],
+      "id": "a255012b-2142-417b-bf75-35b273d8d538",
+      "name": "Revisión completitud"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C31RS3B8V",
+          "mode": "list",
+          "cachedResultName": "cartera_boxcargo_faltantes"
+        },
+        "text": "={{ $json.texto }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.7,
+      "position": [
+        -5088,
+        -3328
+      ],
+      "id": "26ba1173-33ab-492d-b035-c715e59a4281",
+      "name": "Send a message",
+      "webhookId": "869196cf-9065-478b-bcc3-f2eff2ec1994",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "FzIiq6ntpO6Y66Yy",
+          "name": "Slack account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nif (items.length === 0) return [];\n\nlet texto = `🚨 Facturas con datos incompletos — Boxcargo\\n${items.length} registro(s) necesitan revisión\\n\\n`;\n\nitems.forEach((item, i) => {\n  const d = item.json;\n  texto += `${i + 1}. ${d.__identificacion}\\nFalta: ${d.__camposFaltantes}\\n\\n`;\n});\n\ntexto += `_Por favor revisa y actualiza el Excel de origen._`;\n\nreturn [{ json: { texto } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5248,
+        -3328
+      ],
+      "id": "b5f53afa-6983-4df9-849f-220ecb8839af",
+      "name": "Faltantes"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n  const data = item.json.fields || {};\n\n  const estado = data['Estado de Factura'];\n  const categoria = data['Categorización de Mora'] || '';\n  const diasDeMora = data['Días de Mora'] || 0;\n  const ultimaNotificacion = data['Ultima notificación'] || '';\n  const nombre = data['nombre'] || 'cliente';\n  const factura = data['factura'] || '';\n  const valorTotal = data['Valor Total'] || 0;\n\n  let accion = null;\n  let mensaje = null;\n  let nuevoValorNotificacion = null;\n\n  if (estado !== 'Pagada') {\n    if (estado === 'Vencida' && categoria && categoria !== ultimaNotificacion) {\n      accion = 'aviso_mora';\n      nuevoValorNotificacion = categoria;\n      mensaje = `Hola ${nombre}, tu factura ${factura} por valor de $${valorTotal} está vencida hace ${diasDeMora} días (${categoria}). Por favor regulariza tu pago lo antes posible.`;\n    } else if (estado === 'Próxima a vencer' && ultimaNotificacion !== 'Aviso Previo') {\n      accion = 'aviso_previo';\n      nuevoValorNotificacion = 'Aviso Previo';\n      mensaje = `Hola ${nombre}, te recordamos que tu factura ${factura} por valor de $${valorTotal} vence mañana. Evita la mora realizando tu pago a tiempo.`;\n    }\n  }\n\n  item.json.__accionNotificacion = accion;\n  item.json.__mensaje = mensaje;\n  item.json.__nuevoValorNotificacion = nuevoValorNotificacion;\n  return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5232,
+        -3568
+      ],
+      "id": "457f405f-a55e-45ab-8a6d-3e6c2270c1e2",
+      "name": "Evaluar notificación "
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fb186773-a30b-493e-9c56-e39078c86a75",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -4320,
+        -3872
+      ],
+      "id": "c712900d-9aa4-4f5b-a16c-016a7efd731d",
+      "name": "Aprobación humana"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fb186773-a30b-493e-9c56-e39078c86a75",
+              "leftValue": "={{ $json.__accionNotificacion }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -5072,
+        -3568
+      ],
+      "id": "38f63afd-6fca-41a2-950d-fae21cf6845a",
+      "name": "Necesita aviso?"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -4656,
+        -4000
+      ],
+      "id": "bbd0aae1-2c30-4e3b-abf6-f79002ae7701",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nif (items.length === 0) return [];\n\nconst grupos = {};\nfor (const item of items) {\n  const categoria = item.json.__nuevoValorNotificacion || 'Sin categoría';\n  if (!grupos[categoria]) grupos[categoria] = [];\n  grupos[categoria].push(item.json);\n}\n\nreturn Object.entries(grupos).map(([categoria, registros]) => {\n  let texto = `📢 Solicitud de aprobación — ${categoria}\\n${registros.length} persona(s)\\n\\n`;\n  registros.forEach(r => {\n    texto += `• ${r.fields?.nombre ?? r.__identificacion} — Factura ${r.fields?.factura ?? ''} — $${r.fields?.['Valor Total'] ?? ''}\\n`;\n  });\n\n  return {\n    json: { categoria, texto, registros }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4896,
+        -4000
+      ],
+      "id": "fd43faa3-1f47-4628-878f-1130b18ef41a",
+      "name": "Agrupación por categoría "
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "registros",
+        "include": "=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -4016,
+        -4320
+      ],
+      "id": "6fe05b3c-9068-494e-9611-1c27faf64604",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "chatId": "8700833530",
+        "text": "={{ $json.registros.__mensaje }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3744,
+        -4528
+      ],
+      "id": "924972f4-b5b0-400e-b0d4-c919d6962195",
+      "name": "Mensaje al cliente",
+      "webhookId": "c44a77ac-b05c-431e-ae8b-8174b536b274",
+      "credentials": {
+        "telegramApi": {
+          "id": "javM593YH0ddKht1",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appYNE7rMa4QN1qKL",
+          "mode": "list",
+          "cachedResultName": "Boxcargo",
+          "cachedResultUrl": "https://airtable.com/appYNE7rMa4QN1qKL"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblKw2Lqy7mlQTT3D",
+          "mode": "list",
+          "cachedResultName": "Cartera",
+          "cachedResultUrl": "https://airtable.com/appYNE7rMa4QN1qKL/tblKw2Lqy7mlQTT3D"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Ultima notificación ": "={{ $json.registros.fields['Categorización de Mora'] }}",
+            "factura": "={{ $json.registros.fields.factura }}"
+          },
+          "matchingColumns": [
+            "factura"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "factura",
+              "displayName": "factura",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "suite",
+              "displayName": "suite",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "alianza",
+              "displayName": "alianza",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Tipo de cliente",
+              "displayName": "Tipo de cliente",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Valor Total",
+              "displayName": "Valor Total",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Estado de Factura",
+              "displayName": "Estado de Factura",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Automation",
+              "displayName": "Automation",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Pagada",
+                  "value": "Pagada"
+                },
+                {
+                  "name": "Pendiente",
+                  "value": "Pendiente"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Telefono",
+              "displayName": "Telefono",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Plazo de pago",
+              "displayName": "Plazo de pago",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "fecha emision de factura",
+              "displayName": "fecha emision de factura",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "fecha vencimiento",
+              "displayName": "fecha vencimiento",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "fecha creación registro",
+              "displayName": "fecha creación registro",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Días Transcurridos desde Emisión",
+              "displayName": "Días Transcurridos desde Emisión",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Días de Mora",
+              "displayName": "Días de Mora",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Categorización de Mora",
+              "displayName": "Categorización de Mora",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Ultima notificación ",
+              "displayName": "Ultima notificación ",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -3744,
+        -4256
+      ],
+      "id": "0a871f2b-bdad-451c-8723-806b33105e6a",
+      "name": "Update record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "0OCsLT9lxrQ8Sb2G",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "f.foreroaia@gmail.com",
+        "subject": "=Cartera de {{ $json.registros[0].fields.alianza }}",
+        "message": "={{ $json.texto }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -4512,
+        -3664
+      ],
+      "id": "0f773655-31ac-4b3c-b356-c11dd885c032",
+      "name": "Respuesta del equipo de cartera",
+      "webhookId": "4dade34b-ea99-4bf3-a5c3-e1288976a44b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "IBukezMIkvcQxrEG",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -4208,
+        -4144
+      ],
+      "id": "64ea4e5f-9d65-439f-b960-36745d13bd19",
+      "name": "Merge"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "JSON deseado": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llega el archivo XLSX": {
+      "main": [
+        [
+          {
+            "node": "Extrae el contenido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrae el contenido": {
+      "main": [
+        [
+          {
+            "node": "JSON deseado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Camino B: identificación de pagos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Camino A: actualizar o crear usuarios en BD",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "JSON deseado",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Camino A: actualizar o crear usuarios en BD": {
+      "main": [
+        [
+          {
+            "node": "Revisión completitud",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Camino B: identificación de pagos": {
+      "main": [
+        [
+          {
+            "node": "Reglas del JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reglas del JSON": {
+      "main": [
+        [
+          {
+            "node": "Actualizar Automation a pagada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Información completa?": {
+      "main": [
+        [
+          {
+            "node": "Evaluar notificación ",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Faltantes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Revisión completitud": {
+      "main": [
+        [
+          {
+            "node": "Información completa?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Faltantes": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "Evaluar notificación ": {
+      "main": [
+        [
+          {
+            "node": "Necesita aviso?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Necesita aviso?": {
+      "main": [
+        [
+          {
+            "node": "Agrupación por categoría ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aprobación humana": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        []
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Respuesta del equipo de cartera",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agrupación por categoría ": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Mensaje al cliente",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mensaje al cliente": {
+      "main": [
+        []
+      ]
+    },
+    "Respuesta del equipo de cartera": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Aprobación humana",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "fa254510-de36-459c-a242-cb7e420ef5cb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "34c9a2ca1435bb046a19982c937aa1d6ea5f4b6dc7783dde96e49958eb22e435"
+  },
+  "nodeGroups": [],
+  "id": "rVDQii3goVbdScSa",
+  "tags": []
+}
